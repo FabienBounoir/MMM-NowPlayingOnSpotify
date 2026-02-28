@@ -76,8 +76,10 @@ There is not very much to configure but here are the options:
 | Option | Description |
 |--------|-------------|
 | `showCoverArt` | <p>A boolean value decribing whether an album cover photo should be displayed or not.</p><p>**Type:** `boolean` **OPTIONAL**<br>**Example:** `false`<br>**Default Value:** `true`</p> |
-| `showLogoWhenNothingIsPlaying` | <p>A boolean value describing whether the Spotify logo should be displayed when nothing is playing.</p><p>**Type:** `boolean` **OPTIONAL**<br>**Example:** `false`<br>**Default Value:** `true`</p> |
-| `updatesEvery` | <p>An integer determining the interval for display updates.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `5`<br>**Default Value:** `1`</p><p>**Note:** With the default setting the display is updated every second. So when you skip to the next song it is virtually immediately visible. Also the progress bar runs smoothly. If you increase the value you may relieve the strain on your Raspberry’s processor but your display will not be as up-to-date. </p> |
+| `showLogoWhenNothingIsPlaying` | <p>A boolean value describing whether the Spotify logo should be displayed when nothing is playing.</p><p>**Type:** `boolean` **OPTIONAL**<br>**Example:** `false`<br>**Default Value:** `true`</p> || `marginTop` | <p>An integer value for the top margin in pixels.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `10`<br>**Default Value:** `0`</p> |
+| `marginLeft` | <p>An integer value for the left margin in pixels.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `10`<br>**Default Value:** `0`</p> |
+| `marginRight` | <p>An integer value for the right margin in pixels.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `10`<br>**Default Value:** `0`</p> |
+| `marginBottom` | <p>An integer value for the bottom margin in pixels.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `10`<br>**Default Value:** `0`</p> || `updatesEvery` | <p>An integer determining the interval for display updates.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `5`<br>**Default Value:** `1`</p><p>**Note:** With the default setting the display is updated every second. So when you skip to the next song it is virtually immediately visible. Also the progress bar runs smoothly. If you increase the value you may relieve the strain on your Raspberry’s processor but your display will not be as up-to-date. </p> |
 | `clientID` | <p>A string describing the `clientID` of your Spotify app.</p><p>**Type:** `string` **REQUIRED**<br>**Example:** `"acecg8a4..."`<br>**Default Value:** none</p><p>**Note:** The easiest way to get that value is by copying the code snippet from step 3 in the [authorisation app](#step-2-–-create-and-authorise-a-spotify-app).</p> |
 | `clientSecret` | <p>A string describing the `clientSecret` of your Spotify app.</p><p>**Type:** `string` **REQUIRED**<br>**Example:** `"87978346..."`<br>**Default Value:** none</p><p>**Note:** The easiest way to get that value is by copying the code snippet from step 3 in the [authorisation app](#step-2-–-create-and-authorise-a-spotify-app).</p> |
 | `accessToken` | <p>A string describing the `accessToken ` of your Spotify app.</p><p>**Type:** `string` **REQUIRED**<br>**Example:** `"WaIO1987..."`<br>**Default Value:** none</p><p>**Note:** The easiest way to get that value is by copying the code snippet from step 3 in the [authorisation app](#step-2-–-create-and-authorise-a-spotify-app).</p> |
@@ -93,6 +95,8 @@ Here is an example for an entry in `config.js`
     config: {
         showCoverArt: false,
         showLogoWhenNothingIsPlaying: false,
+        marginTop: 10,
+        marginBottom: 10,
         clientID: "<YOUR_CLIENT_ID>",
         clientSecret: "<YOUR_CLIENT_SECRET>",
         accessToken: "<YOUR_ACCESS_TOKEN>",
