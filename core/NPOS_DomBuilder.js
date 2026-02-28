@@ -84,7 +84,7 @@ class NPOS_DomBuilder {
     let content = document.createElement('div');
 
     if (this.config.showCoverArt) {
-      content.appendChild(this.getCoverArtDiv(context.imgURL, 'NPOS_logoImage'));
+      content.appendChild(this.getCoverArtDiv(context.imgURL, 'NPOS_logoImage_cover'));
     } else {
       content.appendChild(this.getIconImage('NPOS_logoImage'));
     }
