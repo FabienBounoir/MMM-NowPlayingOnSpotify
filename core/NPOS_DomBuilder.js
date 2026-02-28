@@ -84,7 +84,7 @@ class NPOS_DomBuilder {
     let content = document.createElement('div');
 
     if (this.config.showCoverArt) {
-      content.appendChild(this.getCoverArtDiv(context.imgURL));
+      content.appendChild(this.getCoverArtDiv(context.imgURL, 'NPOS_logoImage'));
     } else {
       content.appendChild(this.getIconImage('NPOS_logoImage'));
     }
@@ -130,9 +130,9 @@ class NPOS_DomBuilder {
     return infoDiv;
   }
 
-  getCoverArtDiv(coverURL) {
+  getCoverArtDiv(coverURL, className = 'NPOS_coverArtArea') {
     let coverArea = document.createElement('div');
-    coverArea.className = 'NPOS_coverArtArea';
+    coverArea.className = className;
 
     let cover = document.createElement('img');
     cover.src = coverURL;
