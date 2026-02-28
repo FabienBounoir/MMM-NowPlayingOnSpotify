@@ -9,8 +9,9 @@ Module.register('MMM-NowPlayingOnSpotify', {
     hidden: false,
 
     // user definable
-    updatesEvery: 1,          // How often should the table be updated in s?
-    showCoverArt: true       // Do you want the cover art to be displayed?
+    updatesEvery: 1,                  // How often should the table be updated in s?
+    showCoverArt: true,               // Do you want the cover art to be displayed?
+    showLogoWhenNothingIsPlaying: true // Do you want the Spotify logo to be shown when nothing is playing?
   },
 
 
