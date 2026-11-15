@@ -95,6 +95,7 @@ Module.register('MMM-NowPlayingOnSpotify', {
     const render = () => {
       this.context = songData;
       this.receivedAt = Date.now();
+      this.scheduleNextUpdate(this.nextDelay());
       this.entering = changed && key !== '';
       this.updateDom();
       this.toggleVisibility();
@@ -147,10 +148,16 @@ Module.register('MMM-NowPlayingOnSpotify', {
 
     // ... puis rapide pendant la lecture (un changement de morceau se voit tout de suite), lent sinon,
     // avec un appel calé sur la fin du morceau pour passer au suivant sans attendre
-    const tick = () => {
+    this.scheduleNextUpdate(this.config.updatesEvery * 1000);
+  },
+
+  // Le délai est recalculé à chaque réponse (voir showSongData) : quand la musique démarre,
+  // on ne reste pas sur l'attente de 30 s programmée pendant que rien ne jouait
+  scheduleNextUpdate(delay) {
+    clearTimeout(this.updateTimer);
+    this.updateTimer = setTimeout(() => {
       this.sendSocketNotification('UPDATE_CURRENT_SONG', { id: this.identifier });
-      setTimeout(tick, this.nextDelay());
-    };
-    setTimeout(tick, this.config.updatesEvery * 1000);
+      this.scheduleNextUpdate(this.nextDelay()); // filet de sécurité si Spotify ne répond pas
+    }, delay);
   }
 });
