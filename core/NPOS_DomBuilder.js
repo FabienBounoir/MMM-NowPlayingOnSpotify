@@ -206,9 +206,9 @@ function NPOS_dominantColor(image) {
   }
 }
 
-// Garde la teinte mais remonte la luminosité à au moins 60 % pour le noir du miroir
+// Garde la teinte mais remonte la luminosité à au moins 80 % pour qu'elle traverse le verre du miroir
 function NPOS_brighten(r, g, b) {
   const max = Math.max(r, g, b, 1);
-  const scale = Math.max(1, 153 / max);
+  const scale = Math.max(1, 204 / max);
   return 'rgb(' + [r, g, b].map((c) => Math.min(255, Math.round(c * scale))).join(',') + ')';
 }

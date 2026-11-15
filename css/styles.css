@@ -50,7 +50,7 @@
   background: radial-gradient(ellipse 100% 100% at 15% 50%, var(--NPOS-color), transparent 70%);
   height: 260px;
   left: -60px;
-  opacity: calc(0.5 * var(--c));
+  opacity: calc(0.75 * var(--c));
   pointer-events: none;
   position: absolute;
   top: 50%;
@@ -220,8 +220,8 @@
   to { opacity: 0; }
 }
 
-/* Le halo s'allume avec la nouvelle couleur, avec un léger éclat */
+/* Le halo s'allume avec la nouvelle couleur : éclat à pleine intensité et légèrement agrandi, puis il se pose */
 @keyframes NPOS_glowIn {
-  from { opacity: 0; }
-  40% { opacity: calc(0.8 * var(--c)); }
+  from { opacity: 0; transform: translateY(-50%) scale(0.9); }
+  40% { opacity: 1; transform: translateY(-50%) scale(1.15); }
 }
