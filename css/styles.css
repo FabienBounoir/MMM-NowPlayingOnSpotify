@@ -47,8 +47,10 @@
 /* Halo : part de derrière la pochette et s'étire sous le texte en s'estompant vers la droite.
    Un dégradé plutôt qu'un flou : même rendu, beaucoup moins de travail pour le Pi. */
 .NPOS_glow {
-  background: radial-gradient(ellipse 100% 100% at 15% 50%, var(--NPOS-color), transparent 70%);
-  height: 260px;
+  /* L'ellipse touche exactement les bords haut, bas et droit de sa boîte : la couleur s'éteint avant, sans coupure nette,
+     et reste dans la hauteur du bloc pour ne pas se mélanger avec un autre module posé juste au-dessus ou en dessous */
+  background: radial-gradient(ellipse 85% 50% at 15% 50%, var(--NPOS-color), transparent);
+  height: 210px;
   left: -60px;
   opacity: calc(0.75 * var(--c));
   pointer-events: none;
