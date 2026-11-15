@@ -15,10 +15,6 @@
   width: 100%;
 }
 
-.NPOS_albumCover {
-  width: 100%;
-}
-
 .NPOS_nothingIsPlayingContent {
   width: 100%;
 }
@@ -32,53 +28,127 @@
   width: auto;
 }
 
-.NPOS_logoImage_cover {
-  height: 150px !important; 
-  position: absolute !important;
-  right: 0;
-  width: 150px !important; 
-}
-
-.NPOS_logoImage_cover img{
-    border-radius: 15px;
-}
-
-.NPOS_logoImage {
-  height: 100px;
-  opacity: 0.2;
-  position: absolute !important;
-  right: 0;
-  width: 100px;
-}
-
-.NPOS_infoText {
-  max-width: 30ch;
-  overflow: hidden;
+.NPOS_halo {
+  --NPOS-color: #ffffff;
+  align-items: center;
+  display: flex;
+  gap: 0.8em;
+  position: relative;
   text-align: left;
+  transition: opacity 1s;
+}
+
+.NPOS_paused {
+  opacity: 0.55;
+}
+
+/* Halo : la couleur de la pochette, floutée derrière la pochette et le texte */
+.NPOS_glow {
+  background: var(--NPOS-color);
+  border-radius: 50%;
+  filter: blur(60px);
+  height: 300px;
+  left: -60px;
+  opacity: 0.3;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: background 2s;
+  width: 320px;
+}
+
+.NPOS_cover {
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  flex: none;
+  height: 140px;
+  object-fit: cover;
+  position: relative;
+  width: 140px;
+}
+
+.NPOS_coverIcon {
+  box-shadow: none;
+  opacity: 0.3;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+.NPOS_text {
+  display: grid;
+  gap: 0.15em;
+  max-width: 22em;
+  min-width: 0;
+  position: relative;
+}
+
+.NPOS_text > div {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: white !important;
 }
 
-.NPOS_icon {
-  margin-right: 0.5em !important;
+.NPOS_title {
+  line-height: 1.15;
+}
+
+.NPOS_artist {
+  color: color-mix(in srgb, var(--NPOS-color) 30%, #ffffff);
+}
+
+.NPOS_meta {
+  display: flex;
+  gap: 1em;
+  justify-content: space-between;
+  margin-top: 0.4em;
+  font-variant-numeric: tabular-nums;
+}
+
+.NPOS_meta i {
+  font-size: 0.8em;
+  margin-right: 0.3em;
 }
 
 .NPOS_progress {
-  border: 1px solid #F5F5F5;
-  border-radius: 1em;
-  height: 0.5em;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+  height: 3px;
   overflow: hidden;
   width: 100%;
 }
 
 .NPOS_progressValue {
-  background-color: #F5F5F5;
+  background: var(--NPOS-color);
   height: 100%;
   transform-origin: left;
+  transition: background 2s;
+}
+
+.NPOS_next {
+  margin-top: 0.3em;
 }
 
 @keyframes NPOS_progress {
   from { transform: scaleX(var(--NPOS-start)); }
   to { transform: scaleX(1); }
+}
+
+/* Compte déconnecté : QR code de reconnexion */
+.NPOS_authRequired {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.NPOS_qrCode svg {
+  display: block;
+  width: 130px;
+  height: 130px;
+  border-radius: 10px; /* le SVG a un fond blanc : lisible par tous les téléphones sur le miroir noir */
+}
+
+.NPOS_authText {
+  text-align: left;
+  line-height: 1.4;
 }

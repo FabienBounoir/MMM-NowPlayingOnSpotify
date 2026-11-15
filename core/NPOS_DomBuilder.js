@@ -1,3 +1,8 @@
+'use strict';
+
+// Couleur dominante de chaque pochette, calculée une seule fois par image
+const NPOS_colors = {};
+
 
 class NPOS_DomBuilder {
 
@@ -22,7 +27,7 @@ class NPOS_DomBuilder {
 
   getWrapper(content) {
     let wrapper = document.createElement('div');
-    wrapper.className = 'medium'; //small
+    wrapper.className = 'medium';
     wrapper.style.marginTop = this.config.marginTop + 'px';
     wrapper.style.marginLeft = this.config.marginLeft + 'px';
     wrapper.style.marginRight = this.config.marginRight + 'px';
@@ -50,7 +55,7 @@ class NPOS_DomBuilder {
     content.className = 'NPOS_nothingIsPlayingContent';
 
     if (this.config.showLogoWhenNothingIsPlaying) {
-      content.appendChild(this.getLogoImage());
+      content.appendChild(this.getImage('img/Spotify_Logo_RGB_White.png', 'NPOS_nothingIsPlayingImage'));
     }
 
     return content;
@@ -75,14 +80,6 @@ class NPOS_DomBuilder {
     return content;
   }
 
-  getLogoImage() {
-    return this.getImage('img/Spotify_Logo_RGB_White.png', 'NPOS_nothingIsPlayingImage');
-  }
-
-  getIconImage(className) {
-    return this.getImage('img/Spotify_Icon_RGB_White.png', className);
-  }
-
   getImage(imageName, className) {
     let image = document.createElement('img');
     image.src = this.pathPrefix + imageName;
@@ -92,39 +89,69 @@ class NPOS_DomBuilder {
   }
 
   /**
-   * Returns a div configured for the given context.
-   *
-   * context = {
-   *   imgURL: *an url*,
-   *   songTitle: *string*,
-   *   artist: *string*,
-   *   album: *string*,
-   *   titleLength: *num*,
-   *   progress: *num*,
-   *   isPlaying: *boolean*,
-   *   deviceName: *string*
-   * }
-   *
-   * @param context
-   * @returns {HTMLDivElement}
+   * Design « Halo » : la couleur de la pochette diffuse derrière le texte et colore la barre.
+   * context = { imgURL, songTitle, artist, album, titleLength, progress, isPlaying, deviceName, next }
    */
   getPlayingContent(context) {
     let content = document.createElement('div');
+    content.className = 'NPOS_halo' + (context.isPlaying ? '' : ' NPOS_paused');
+
+    let glow = document.createElement('div');
+    glow.className = 'NPOS_glow';
+    content.appendChild(glow);
 
     if (this.config.showCoverArt && context.imgURL) {
-      content.appendChild(this.getCoverArtDiv(context.imgURL, 'NPOS_logoImage_cover'));
+      let cover = document.createElement('img');
+      cover.className = 'NPOS_cover';
+      cover.crossOrigin = 'anonymous'; // les images de Spotify l'autorisent : on peut lire leurs pixels
+      cover.src = context.imgURL;
+      this.applyColor(content, cover, context.imgURL);
+      content.appendChild(cover);
     } else {
-      content.appendChild(this.getIconImage('NPOS_logoImage'));
+      content.appendChild(this.getImage('img/Spotify_Icon_RGB_White.png', 'NPOS_cover NPOS_coverIcon'));
     }
 
-    content.appendChild(this.getInfoDiv('fa fa-music', context.songTitle));
-    content.appendChild(this.getInfoDiv('fa fa-user', context.artist));
-    content.appendChild(this.getInfoDiv('fa fa-folder', context.album));
-    content.appendChild(this.getInfoDiv(this.getPlayStatusIcon(context.isPlaying), this.getTimeInfo(context)));
-    content.appendChild(this.getProgressBar(context));
-    content.appendChild(this.getInfoDiv('', context.deviceName));
+    let text = document.createElement('div');
+    text.className = 'NPOS_text';
+    text.appendChild(this.getLine('NPOS_title bright', context.songTitle));
+    text.appendChild(this.getLine('NPOS_artist small', context.artist));
 
+    let meta = document.createElement('div');
+    meta.className = 'NPOS_meta xsmall dimmed';
+    let device = document.createElement('span');
+    device.innerHTML = '<i class="fa-solid ' + (context.isPlaying ? 'fa-play' : 'fa-pause') + '"></i> ';
+    device.appendChild(document.createTextNode(context.deviceName));
+    meta.appendChild(device);
+    meta.appendChild(this.getLine('NPOS_time', this.getTimeInfo(context)));
+    text.appendChild(meta);
+
+    text.appendChild(this.getProgressBar(context));
+
+    if (context.next) {
+      text.appendChild(this.getLine('NPOS_next xsmall dimmed', 'À suivre : ' + context.next));
+    }
+
+    content.appendChild(text);
     return content;
+  }
+
+  getLine(className, value) {
+    let line = document.createElement('div');
+    line.className = className;
+    line.textContent = value;
+    return line;
+  }
+
+  // Couleur dominante de la pochette → variable CSS --NPOS-color (halo et barre)
+  applyColor(content, cover, url) {
+    if (NPOS_colors[url]) {
+      content.style.setProperty('--NPOS-color', NPOS_colors[url]);
+      return;
+    }
+    cover.addEventListener('load', () => {
+      NPOS_colors[url] = NPOS_dominantColor(cover);
+      content.style.setProperty('--NPOS-color', NPOS_colors[url]);
+    }, { once: true });
   }
 
   // La barre avance toute seule en CSS jusqu'à la fin du morceau, entre deux appels à Spotify
@@ -151,36 +178,36 @@ class NPOS_DomBuilder {
 
     return currentPos.format() + ' / ' + length.format();
   }
+}
 
-  getInfoDiv(symbol, text) {
-    let infoDiv = document.createElement('div');
-    infoDiv.className = 'NPOS_infoText';
 
-    if (symbol) {
-      let icon = document.createElement('i');
-      icon.className = 'NPOS_icon ' + symbol;
-      infoDiv.appendChild(icon);
+// Moyenne des pixels colorés de la pochette (les gris et les noirs sont ignorés), éclaircie pour rester visible sur le miroir noir.
+// ponytail: moyenne pondérée, pas de vrai clustering ; une pochette très bicolore donne une teinte intermédiaire
+function NPOS_dominantColor(image) {
+  try {
+    const size = 24;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(image, 0, 0, size, size);
+    const data = ctx.getImageData(0, 0, size, size).data;
+
+    let r = 0, g = 0, b = 0, total = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const max = Math.max(data[i], data[i + 1], data[i + 2]);
+      const min = Math.min(data[i], data[i + 1], data[i + 2]);
+      const weight = (max - min) / 255 + 0.02; // les pixels saturés comptent plus
+      r += data[i] * weight; g += data[i + 1] * weight; b += data[i + 2] * weight; total += weight;
     }
-
-    infoDiv.appendChild(document.createTextNode(text));
-
-    return infoDiv;
+    return NPOS_brighten(r / total, g / total, b / total);
+  } catch (e) {
+    return '#ffffff';
   }
+}
 
-  getCoverArtDiv(coverURL, className = 'NPOS_coverArtArea') {
-    let coverArea = document.createElement('div');
-    coverArea.className = className;
-
-    let cover = document.createElement('img');
-    cover.src = coverURL;
-    cover.className = 'NPOS_albumCover';
-
-    coverArea.appendChild(cover);
-
-    return coverArea;
-  }
-
-  getPlayStatusIcon(isPlaying) {
-    return isPlaying ? 'fa fa-play' : 'fa fa-pause';
-  }
+// Garde la teinte mais remonte la luminosité à au moins 60 % pour le noir du miroir
+function NPOS_brighten(r, g, b) {
+  const max = Math.max(r, g, b, 1);
+  const scale = Math.max(1, 153 / max);
+  return 'rgb(' + [r, g, b].map((c) => Math.min(255, Math.round(c * scale))).join(',') + ')';
 }

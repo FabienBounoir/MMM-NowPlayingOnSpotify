@@ -75,6 +75,15 @@ module.exports = class SpotifyConnector {
     return request.get(options);
   }
 
+  // File d'attente : sert à afficher « À suivre »
+  getQueue() {
+    return request.get({
+      url: 'https://api.spotify.com/v1/me/player/queue',
+      headers: { 'Authorization': 'Bearer ' + this.credentials.accessToken },
+      json: true
+    });
+  }
+
   refreshAccessToken() {
     let options = {
       url: tokenRefreshEndpoint,

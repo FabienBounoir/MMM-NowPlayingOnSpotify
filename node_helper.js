@@ -79,6 +79,7 @@ module.exports = NodeHelper.create({
       case 'CONNECT_TO_SPOTIFY': {
         const credentials = { ...payload.credentials, ...this.tokens[payload.credentials.clientID] };
         this.connectors[payload.id] = new SpotifyConnector(credentials, (c) => this.saveTokens(c));
+        this.connectors[payload.id].showNextTrack = payload.showNextTrack;
         this.retrieveCurrentSong(payload.id);
         break;
       }
@@ -99,7 +100,9 @@ module.exports = NodeHelper.create({
 
     connector.retrieveCurrentlyPlaying()
       .then((response) => {
-        this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData: toSongData(response) });
+        const songData = toSongData(response);
+        return this.addNextTrack(connector, response, songData)
+          .then(() => this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData }));
       })
       .catch((error) => {
         if (connector.needsAuth) return this.sendAuthRequired(id);
@@ -108,6 +111,31 @@ module.exports = NodeHelper.create({
       })
       .finally(() => {
         connector.busy = false;
+      });
+  },
+
+
+  // showNextTrack : la file d'attente n'est demandée qu'au changement de morceau, pas à chaque rafraîchissement
+  addNextTrack: function (connector, response, songData) {
+    if (!connector.showNextTrack || songData.noSong) return Promise.resolve();
+
+    const current = response.item.uri;
+    if (connector.nextFor === current) {
+      songData.next = connector.next;
+      return Promise.resolve();
+    }
+
+    return connector.getQueue()
+      .then((queue) => {
+        const next = queue && queue.queue && queue.queue[0];
+        connector.next = next ? next.name + (next.artists ? ' · ' + next.artists.map((a) => a.name).join(', ') : '') : '';
+      })
+      .catch(() => {
+        connector.next = '';
+      })
+      .then(() => {
+        connector.nextFor = current;
+        songData.next = connector.next;
       });
   },
 

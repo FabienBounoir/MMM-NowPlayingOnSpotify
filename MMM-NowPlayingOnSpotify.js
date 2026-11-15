@@ -9,9 +9,12 @@ Module.register('MMM-NowPlayingOnSpotify', {
     hidden: false,
 
     // user definable
-    updatesEvery: 1,                  // How often should the table be updated in s?
+    updatesEvery: 1,                  // How often should the table be updated in s? (while music is playing)
+    idleUpdatesEvery: 30,             // Same, while nothing is playing or the music is paused
     showCoverArt: true,               // Do you want the cover art to be displayed?
     showLogoWhenNothingIsPlaying: true, // Do you want the Spotify logo to be shown when nothing is playing?
+    hideWhenNothingIsPlaying: false,  // Fade the whole module out while nothing is playing
+    showNextTrack: false,             // Show the next track of the queue under the progress bar
     accountName: '',                  // Shown next to the reconnect QR code, e.g. 'Fabien'
     marginTop: 0,                     // Top margin in pixels
     marginLeft: 0,                    // Left margin in pixels
@@ -62,6 +65,18 @@ Module.register('MMM-NowPlayingOnSpotify', {
         this.initialized = true;
         this.context = payload.songData;
         this.updateDom();
+        this.toggleVisibility();
+    }
+  },
+
+  // hideWhenNothingIsPlaying : fondu de sortie quand rien ne joue (le QR code de reconnexion reste toujours visible)
+  toggleVisibility() {
+    if (!this.config.hideWhenNothingIsPlaying) return;
+    const lock = { lockString: this.identifier };
+    if (this.context.noSong) {
+      if (!this.hidden) this.hide(1000, lock);
+    } else if (this.hidden) {
+      this.show(1000, lock);
     }
   },
 
@@ -74,11 +89,18 @@ Module.register('MMM-NowPlayingOnSpotify', {
       refreshToken: this.config.refreshToken
     };
 
-    this.sendSocketNotification('CONNECT_TO_SPOTIFY', { id: this.identifier, credentials });
+    this.sendSocketNotification('CONNECT_TO_SPOTIFY', {
+      id: this.identifier,
+      credentials,
+      showNextTrack: this.config.showNextTrack
+    });
 
-    // ... and then repeat in the given interval
-    setInterval(() => {
+    // ... puis rapide pendant la lecture (un changement de morceau se voit tout de suite), lent sinon
+    const tick = () => {
       this.sendSocketNotification('UPDATE_CURRENT_SONG', { id: this.identifier });
-    }, this.config.updatesEvery * 1000);
+      const seconds = this.context.isPlaying ? this.config.updatesEvery : Math.max(this.config.idleUpdatesEvery, this.config.updatesEvery);
+      setTimeout(tick, seconds * 1000);
+    };
+    setTimeout(tick, this.config.updatesEvery * 1000);
   }
 });
