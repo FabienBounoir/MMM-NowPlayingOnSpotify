@@ -30,55 +30,58 @@
 
 .NPOS_halo {
   --NPOS-color: #ffffff;
+  --c: var(--NPOS-contrast, 1);
   align-items: center;
   display: flex;
-  gap: 0.8em;
+  gap: 1em;
   position: relative;
   text-align: left;
   transition: opacity 1s;
+  width: 100%;
 }
 
 .NPOS_paused {
-  opacity: 0.55;
+  opacity: calc(0.6 * var(--c));
 }
 
-/* Halo : la couleur de la pochette, floutée derrière la pochette et le texte */
+/* Halo : la couleur de la pochette, comme un rétroéclairage serré derrière elle.
+   Plus intense et plus compact qu'un grand voile : derrière un miroir sans tain, un voile pâle passe pour une tache. */
 .NPOS_glow {
   background: var(--NPOS-color);
-  border-radius: 50%;
-  filter: blur(60px);
-  height: 300px;
-  left: -60px;
-  opacity: 0.3;
+  border-radius: 30%;
+  filter: blur(45px);
+  height: 190px;
+  left: -25px;
+  opacity: calc(0.65 * var(--c));
   pointer-events: none;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   transition: background 2s;
-  width: 320px;
+  width: 210px;
 }
 
 .NPOS_cover {
   border-radius: 14px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
   flex: none;
-  height: 140px;
+  height: 160px;
   object-fit: cover;
   position: relative;
-  width: 140px;
+  width: 160px;
 }
 
 .NPOS_coverIcon {
   box-shadow: none;
-  opacity: 0.3;
-  padding: 30px;
+  opacity: 0.4;
+  padding: 35px;
   box-sizing: border-box;
 }
 
 .NPOS_text {
   display: grid;
-  gap: 0.15em;
-  max-width: 22em;
+  flex: 1;
+  gap: 0.1em;
   min-width: 0;
   position: relative;
 }
@@ -89,20 +92,28 @@
   white-space: nowrap;
 }
 
+/* Tailles relatives au bloc (classe medium de MagicMirror) */
 .NPOS_title {
+  color: #ffffff;
+  font-size: 1.3em;
   line-height: 1.15;
 }
 
 .NPOS_artist {
-  color: color-mix(in srgb, var(--NPOS-color) 30%, #ffffff);
+  color: color-mix(in srgb, var(--NPOS-color) 25%, #ffffff);
+  font-size: 0.95em;
+  opacity: calc(0.9 * var(--c));
 }
 
 .NPOS_meta {
+  color: #ffffff;
   display: flex;
+  font-size: 0.7em;
+  font-variant-numeric: tabular-nums;
   gap: 1em;
   justify-content: space-between;
-  margin-top: 0.4em;
-  font-variant-numeric: tabular-nums;
+  margin-top: 0.5em;
+  opacity: calc(0.75 * var(--c));
 }
 
 .NPOS_meta i {
@@ -111,9 +122,10 @@
 }
 
 .NPOS_progress {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 2px;
-  height: 3px;
+  background: rgb(255 255 255 / calc(0.22 * var(--c)));
+  border-radius: 3px;
+  height: 5px;
+  margin-top: 0.3em;
   overflow: hidden;
   width: 100%;
 }
@@ -126,7 +138,10 @@
 }
 
 .NPOS_next {
-  margin-top: 0.3em;
+  color: #ffffff;
+  font-size: 0.7em;
+  margin-top: 0.4em;
+  opacity: calc(0.65 * var(--c));
 }
 
 @keyframes NPOS_progress {

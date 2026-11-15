@@ -32,6 +32,7 @@ class NPOS_DomBuilder {
     wrapper.style.marginLeft = this.config.marginLeft + 'px';
     wrapper.style.marginRight = this.config.marginRight + 'px';
     wrapper.style.marginBottom = this.config.marginBottom + 'px';
+    wrapper.style.setProperty('--NPOS-contrast', this.config.contrast); // option contrast : un seul réglage pour tout
     wrapper.appendChild(content);
 
     return wrapper;
@@ -114,10 +115,10 @@ class NPOS_DomBuilder {
     let text = document.createElement('div');
     text.className = 'NPOS_text';
     text.appendChild(this.getLine('NPOS_title bright', context.songTitle));
-    text.appendChild(this.getLine('NPOS_artist small', context.artist));
+    text.appendChild(this.getLine('NPOS_artist', context.artist));
 
     let meta = document.createElement('div');
-    meta.className = 'NPOS_meta xsmall dimmed';
+    meta.className = 'NPOS_meta';
     let device = document.createElement('span');
     device.innerHTML = '<i class="fa-solid ' + (context.isPlaying ? 'fa-play' : 'fa-pause') + '"></i> ';
     device.appendChild(document.createTextNode(context.deviceName));
@@ -128,7 +129,7 @@ class NPOS_DomBuilder {
     text.appendChild(this.getProgressBar(context));
 
     if (context.next) {
-      text.appendChild(this.getLine('NPOS_next xsmall dimmed', 'À suivre : ' + context.next));
+      text.appendChild(this.getLine('NPOS_next', 'À suivre : ' + context.next));
     }
 
     content.appendChild(text);

@@ -15,6 +15,7 @@ Module.register('MMM-NowPlayingOnSpotify', {
     showLogoWhenNothingIsPlaying: true, // Do you want the Spotify logo to be shown when nothing is playing?
     hideWhenNothingIsPlaying: false,  // Fade the whole module out while nothing is playing
     showNextTrack: false,             // Show the next track of the queue under the progress bar
+    contrast: 1,                      // Brightness of secondary texts and halo: 1.5 = brighter, 0.7 = softer
     accountName: '',                  // Shown next to the reconnect QR code, e.g. 'Fabien'
     marginTop: 0,                     // Top margin in pixels
     marginLeft: 0,                    // Left margin in pixels
