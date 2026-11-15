@@ -6,33 +6,33 @@ const SpotifyConnector = require('./core/SpotifyConnector');
 
 module.exports = NodeHelper.create({
 
+  // Un connecteur par instance du module : chaque bloc de config peut avoir son propre compte Spotify
   start: function () {
-    this.connector = undefined;
+    this.connectors = {};
   },
 
 
   socketNotificationReceived: function (notification, payload) {
     switch (notification) {
       case 'CONNECT_TO_SPOTIFY':
-        this.connector = new SpotifyConnector(payload);
-        this.retrieveCurrentSong();
+        this.connectors[payload.id] = new SpotifyConnector(payload.credentials);
+        this.retrieveCurrentSong(payload.id);
         break;
 
       case 'UPDATE_CURRENT_SONG':
-        this.retrieveCurrentSong();
+        this.retrieveCurrentSong(payload.id);
         break;
     }
   },
 
 
-  retrieveCurrentSong: function () {
-    this.connector.retrieveCurrentlyPlaying()
+  retrieveCurrentSong: function (id) {
+    const connector = this.connectors[id];
+    if (!connector) return;
+
+    connector.retrieveCurrentlyPlaying()
       .then((response) => {
-        if (response) {
-          this.sendRetrievedNotification(response);
-        } else {
-          this.sendRetrievedNotification({ noSong: true });
-        }
+        this.sendRetrievedNotification(id, response || { noSong: true });
       })
       .catch((error) => {
         console.error('Can’t retrieve current song. Reason: ');
@@ -41,7 +41,7 @@ module.exports = NodeHelper.create({
   },
 
 
-  sendRetrievedNotification: function (songInfo) {
+  sendRetrievedNotification: function (id, songInfo) {
     let payload = songInfo;
 
     if (!songInfo.noSong) {
@@ -57,7 +57,7 @@ module.exports = NodeHelper.create({
       };
     }
 
-    this.sendSocketNotification('RETRIEVED_SONG_DATA', payload);
+    this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData: payload });
   },
 
 

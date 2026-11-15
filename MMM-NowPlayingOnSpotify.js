@@ -54,10 +54,12 @@ Module.register('MMM-NowPlayingOnSpotify', {
   },
 
   socketNotificationReceived: function (notification, payload) {
+    if (payload.id !== this.identifier) return;
+
     switch (notification) {
       case 'RETRIEVED_SONG_DATA':
         this.initialized = true;
-        this.context = payload;
+        this.context = payload.songData;
         this.updateDom();
     }
   },
@@ -71,11 +73,11 @@ Module.register('MMM-NowPlayingOnSpotify', {
       refreshToken: this.config.refreshToken
     };
 
-    this.sendSocketNotification('CONNECT_TO_SPOTIFY', credentials);
+    this.sendSocketNotification('CONNECT_TO_SPOTIFY', { id: this.identifier, credentials });
 
     // ... and then repeat in the given interval
     setInterval(() => {
-      this.sendSocketNotification('UPDATE_CURRENT_SONG');
+      this.sendSocketNotification('UPDATE_CURRENT_SONG', { id: this.identifier });
     }, this.config.updatesEvery * 1000);
   }
 });

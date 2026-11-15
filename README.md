@@ -106,6 +106,11 @@ Here is an example for an entry in `config.js`
 ```
 
 
+### Plusieurs comptes Spotify
+
+Ajoutez simplement un bloc par compte, avec le même nom de module : chaque instance utilise ses propres identifiants. Inutile de dupliquer le dossier du module.
+
+
 ## Special Thanks
 
 * [Michael Teeuw](https://github.com/MichMich) for inspiring me and many others to build a MagicMirror module.
