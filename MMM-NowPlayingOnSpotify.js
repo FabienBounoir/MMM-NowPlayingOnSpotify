@@ -29,8 +29,22 @@ Module.register('MMM-NowPlayingOnSpotify', {
 
     this.initialized = false;
     this.context = {};
+    this.receivedAt = Date.now();
 
     this.startFetchingLoop();
+
+    // Le temps écoulé avance chaque seconde, comme la barre, entre deux appels à Spotify
+    setInterval(() => {
+      if (!this.context.isPlaying) return;
+      const time = document.querySelector('#' + this.identifier + ' .NPOS_time');
+      if (time) time.textContent = NPOS_DomBuilder.prototype.getTimeInfo({ progress: this.currentProgress(), titleLength: this.context.titleLength });
+    }, 1000);
+  },
+
+  // Position estimée dans le morceau : dernière valeur de Spotify + temps écoulé depuis
+  currentProgress() {
+    const elapsed = this.context.isPlaying ? Date.now() - this.receivedAt : 0;
+    return Math.min(this.context.titleLength || 0, (this.context.progress || 0) + elapsed);
   },
 
   getDom: function () {
@@ -65,9 +79,16 @@ Module.register('MMM-NowPlayingOnSpotify', {
       case 'RETRIEVED_SONG_DATA':
         this.initialized = true;
         this.context = payload.songData;
+        this.receivedAt = Date.now();
         this.updateDom();
         this.toggleVisibility();
     }
+  },
+
+  nextDelay() {
+    if (!this.context.isPlaying) return Math.max(this.config.idleUpdatesEvery, this.config.updatesEvery) * 1000;
+    const remaining = this.context.titleLength - this.currentProgress();
+    return Math.max(500, Math.min(this.config.updatesEvery * 1000, remaining + 800));
   },
 
   // hideWhenNothingIsPlaying : fondu de sortie quand rien ne joue (le QR code de reconnexion reste toujours visible)
@@ -96,11 +117,11 @@ Module.register('MMM-NowPlayingOnSpotify', {
       showNextTrack: this.config.showNextTrack
     });
 
-    // ... puis rapide pendant la lecture (un changement de morceau se voit tout de suite), lent sinon
+    // ... puis rapide pendant la lecture (un changement de morceau se voit tout de suite), lent sinon,
+    // avec un appel calé sur la fin du morceau pour passer au suivant sans attendre
     const tick = () => {
       this.sendSocketNotification('UPDATE_CURRENT_SONG', { id: this.identifier });
-      const seconds = this.context.isPlaying ? this.config.updatesEvery : Math.max(this.config.idleUpdatesEvery, this.config.updatesEvery);
-      setTimeout(tick, seconds * 1000);
+      setTimeout(tick, this.nextDelay());
     };
     setTimeout(tick, this.config.updatesEvery * 1000);
   }
