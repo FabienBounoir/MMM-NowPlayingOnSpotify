@@ -54,7 +54,9 @@ module.exports = NodeHelper.create({
       const id = this.pendingLogins[nonce];
       const connector = this.connectors[id];
       if (!connector || !req.query.code) {
-        return res.status(400).send(page('Connexion annulée ou lien expiré. Rescanne le QR code affiché sur le miroir.'));
+        const reason = req.query.error ? 'Spotify a répondu : ' + req.query.error : (id ? 'pas de code reçu' : 'lien inconnu ou déjà utilisé');
+        console.warn('[MMM-NowPlayingOnSpotify] reconnexion refusée (' + reason + ') : ' + req.originalUrl.replace(/code=[^&]*/, 'code=…'));
+        return res.status(400).send(page('Connexion annulée ou lien expiré (' + reason + '). Rescanne le QR code affiché sur le miroir.'));
       }
       delete this.pendingLogins[nonce];
 
