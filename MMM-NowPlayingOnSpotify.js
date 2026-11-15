@@ -64,15 +64,13 @@ Module.register('MMM-NowPlayingOnSpotify', {
   getStyles: function () {
     return [
       this.file('css/styles.css'),
-      this.file('node_modules/moment-duration-format/lib/moment-duration-format.js'),
       'font-awesome.css'
     ];
   },
 
   getScripts: function () {
     return [
-      this.file('core/NPOS_DomBuilder.js'),
-      'moment.js'
+      this.file('core/NPOS_DomBuilder.js')
     ];
   },
 

@@ -80,7 +80,9 @@ module.exports = NodeHelper.create({
         const credentials = { ...payload.credentials, ...this.tokens[payload.credentials.clientID] };
         this.connectors[payload.id] = new SpotifyConnector(credentials, (c) => this.saveTokens(c));
         this.connectors[payload.id].showNextTrack = payload.showNextTrack;
-        this.retrieveCurrentSong(payload.id);
+        // Première installation (pas encore de token) : QR code tout de suite
+        if (this.connectors[payload.id].needsAuth) this.sendAuthRequired(payload.id);
+        else this.retrieveCurrentSong(payload.id);
         break;
       }
 
@@ -106,8 +108,7 @@ module.exports = NodeHelper.create({
       })
       .catch((error) => {
         if (connector.needsAuth) return this.sendAuthRequired(id);
-        console.error('Can’t retrieve current song. Reason: ');
-        console.error(error);
+        console.error('[MMM-NowPlayingOnSpotify] lecture en cours indisponible : ' + error.message, error.body || '');
       })
       .finally(() => {
         connector.busy = false;

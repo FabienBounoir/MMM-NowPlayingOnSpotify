@@ -40,14 +40,8 @@ class NPOS_DomBuilder {
 
   getInitializingContent(loadingText) {
     let content = document.createElement('div');
-    content.className = 'NPOS_initContent';
-
-    let loadingDiv = document.createElement('div');
-    loadingDiv.className = 'NPOS_loading medium';
-    loadingDiv.innerHTML = loadingText;
-
-    content.appendChild(loadingDiv);
-
+    content.className = 'NPOS_loading small';
+    content.textContent = loadingText;
     return content;
   }
 
@@ -174,10 +168,7 @@ class NPOS_DomBuilder {
   }
 
   getTimeInfo(context) {
-    let currentPos = moment.duration(context.progress);
-    let length = moment.duration(context.titleLength);
-
-    return currentPos.format() + ' / ' + length.format();
+    return NPOS_formatDuration(context.progress) + ' / ' + NPOS_formatDuration(context.titleLength);
   }
 }
 
@@ -212,3 +203,15 @@ function NPOS_brighten(r, g, b) {
   const scale = Math.max(1, 204 / max);
   return 'rgb(' + [r, g, b].map((c) => Math.min(255, Math.round(c * scale))).join(',') + ')';
 }
+
+
+// 102000 → "1:42", 3723000 → "1:02:03"
+function NPOS_formatDuration(ms) {
+  const total = Math.max(0, Math.floor((ms || 0) / 1000));
+  const h = Math.floor(total / 3600), m = Math.floor(total / 60) % 60, s = total % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  return h ? h + ':' + pad(m) + ':' + pad(s) : m + ':' + pad(s);
+}
+
+// Pour test.js (dans MagicMirror, ce fichier est chargé comme un simple script)
+if (typeof module !== 'undefined') module.exports = { NPOS_formatDuration, NPOS_brighten };

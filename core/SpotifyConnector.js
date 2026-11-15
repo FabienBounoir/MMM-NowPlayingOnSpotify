@@ -1,11 +1,9 @@
 'use strict';
 
-const request = require('request-promise-native');
-const moment = require('moment');
-
-const tokenRefreshEndpoint = 'https://accounts.spotify.com/api/token';
+const tokenEndpoint = 'https://accounts.spotify.com/api/token';
 // additional_types=episode : sans ça, Spotify renvoie un morceau vide pendant un podcast
-const apiEndpoint = 'https://api.spotify.com/v1/me/player?additional_types=episode';
+const playerEndpoint = 'https://api.spotify.com/v1/me/player?additional_types=episode';
+const queueEndpoint = 'https://api.spotify.com/v1/me/player/queue';
 
 
 module.exports = class SpotifyConnector {
@@ -14,87 +12,80 @@ module.exports = class SpotifyConnector {
   constructor(credentials, onTokens = () => {}) {
     this.credentials = credentials;
     this.onTokens = onTokens;
-    this.tokenExpiresAt = moment();
-    this.needsAuth = false; // true quand Spotify a révoqué le refresh token : il faut se reconnecter
+    this.tokenExpiresAt = 0;
+    // Pas encore de refresh token (première installation) ou révoqué par Spotify : il faut se connecter par QR code
+    this.needsAuth = !credentials.refreshToken;
   }
 
   saveTokens(response) {
     this.credentials.accessToken = response.access_token;
     // Spotify peut renvoyer un nouveau refresh token : l'ancien finit alors par être révoqué
     if (response.refresh_token) this.credentials.refreshToken = response.refresh_token;
-    this.tokenExpiresAt = moment().add(response.expires_in, 'seconds');
+    this.tokenExpiresAt = Date.now() + response.expires_in * 1000;
     this.needsAuth = false;
     this.onTokens(this.credentials);
   }
 
   // Échange le code reçu après la connexion sur le téléphone contre des tokens
   authorize(code, redirectUri) {
-    return request.post({
-      url: tokenRefreshEndpoint,
-      headers: { 'Authorization': this.basicAuth() },
-      form: { grant_type: 'authorization_code', code: code, redirect_uri: redirectUri },
-      json: true
-    }).then((response) => this.saveTokens(response));
-  }
-
-  basicAuth() {
-    return 'Basic ' + Buffer.from(this.credentials.clientID + ':' + this.credentials.clientSecret).toString('base64');
+    return this.requestToken({ grant_type: 'authorization_code', code: code, redirect_uri: redirectUri })
+      .then((response) => this.saveTokens(response));
   }
 
   retrieveCurrentlyPlaying() {
-    if (moment().isBefore(this.tokenExpiresAt)) {
-      return this.getSpotifyData();
-
-    } else {
-      return this.refreshAccessToken()
-        .then((response) => {
-          console.log('Refreshed access token because it has expired. Expired at: %s now is: %s',
-            this.tokenExpiresAt.format('HH:mm:ss'), moment().format('HH:mm:ss'));
-
-          this.saveTokens(response);
-          return this.getSpotifyData();
-        })
-        .catch((err) => {
-          if (err.error && err.error.error === 'invalid_grant') {
-            this.needsAuth = true;
-            throw err;
-          }
-          console.error('Error while refreshing:');
-          console.error(err);
-        });
+    if (Date.now() < this.tokenExpiresAt) {
+      return this.getSpotifyData(playerEndpoint);
     }
-  }
 
-  getSpotifyData() {
-    let options = {
-      url: apiEndpoint,
-      headers: {'Authorization': 'Bearer ' + this.credentials.accessToken},
-      json: true
-    };
-
-    return request.get(options);
+    return this.requestToken({ grant_type: 'refresh_token', refresh_token: this.credentials.refreshToken })
+      .then((response) => {
+        console.log('[MMM-NowPlayingOnSpotify] access token renouvelé');
+        this.saveTokens(response);
+        return this.getSpotifyData(playerEndpoint);
+      })
+      .catch((error) => {
+        if (error.body && error.body.error === 'invalid_grant') this.needsAuth = true;
+        throw error;
+      });
   }
 
   // File d'attente : sert à afficher « À suivre »
   getQueue() {
-    return request.get({
-      url: 'https://api.spotify.com/v1/me/player/queue',
-      headers: { 'Authorization': 'Bearer ' + this.credentials.accessToken },
-      json: true
+    return this.getSpotifyData(queueEndpoint);
+  }
+
+  getSpotifyData(url) {
+    return send(url, { headers: { 'Authorization': 'Bearer ' + this.credentials.accessToken } });
+  }
+
+  requestToken(form) {
+    const basic = Buffer.from(this.credentials.clientID + ':' + this.credentials.clientSecret).toString('base64');
+    return send(tokenEndpoint, {
+      method: 'POST',
+      headers: { 'Authorization': 'Basic ' + basic },
+      body: new URLSearchParams(form)
     });
   }
-
-  refreshAccessToken() {
-    let options = {
-      url: tokenRefreshEndpoint,
-      headers: { 'Authorization': this.basicAuth() },
-      form: {
-        grant_type: 'refresh_token',
-        refresh_token: this.credentials.refreshToken
-      },
-      json: true
-    };
-
-    return request.post(options);
-  }
 };
+
+
+// fetch de Node : renvoie le JSON, '' quand Spotify n'a rien à dire (204 = rien ne joue),
+// et lève une erreur avec le corps de la réponse (error.body) en cas d'échec
+async function send(url, options) {
+  const response = await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+  const text = await response.text();
+  let body = '';
+  try {
+    body = text ? JSON.parse(text) : '';
+  } catch (e) {
+    body = text;
+  }
+
+  if (!response.ok) {
+    const error = new Error('Spotify ' + response.status + ' sur ' + url.split('?')[0]);
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+  return body;
+}
