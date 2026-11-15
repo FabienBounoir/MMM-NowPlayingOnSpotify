@@ -50,7 +50,7 @@
   /* L'ellipse touche exactement les bords haut, bas et droit de sa boîte : la couleur s'éteint avant, sans coupure nette,
      et reste dans la hauteur du bloc pour ne pas se mélanger avec un autre module posé juste au-dessus ou en dessous */
   background: radial-gradient(ellipse 85% 50% at 15% 50%, var(--NPOS-color), transparent);
-  height: 170px;
+  height: 210px;
   left: -60px;
   opacity: calc(0.75 * var(--c));
   pointer-events: none;
@@ -222,8 +222,8 @@
   to { opacity: 0; }
 }
 
-/* Le halo s'allume avec la nouvelle couleur : éclat à pleine intensité et légèrement agrandi, puis il se pose */
+/* Le halo s'allume avec la nouvelle couleur : éclat à pleine intensité, sans changer de taille, puis il se pose */
 @keyframes NPOS_glowIn {
-  from { opacity: 0; transform: translateY(-50%) scale(0.9); }
-  40% { opacity: 1; transform: translateY(-50%) scale(1.15); }
+  from { opacity: 0; }
+  40% { opacity: 1; }
 }
