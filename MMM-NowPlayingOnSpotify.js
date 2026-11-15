@@ -51,7 +51,11 @@ Module.register('MMM-NowPlayingOnSpotify', {
     let domBuilder = new NPOS_DomBuilder(this.config, this.file(''));
 
     if (this.initialized) {
-      return domBuilder.getDom(this.context);
+      const dom = domBuilder.getDom(this.context);
+      // Animation d'entrée seulement au changement de morceau, pas à chaque rafraîchissement
+      if (this.entering) dom.classList.add('NPOS_enter');
+      this.entering = false;
+      return dom;
     } else {
       return domBuilder.getInitDom(this.translate('LOADING'));
     }
@@ -78,10 +82,34 @@ Module.register('MMM-NowPlayingOnSpotify', {
     switch (notification) {
       case 'RETRIEVED_SONG_DATA':
         this.initialized = true;
-        this.context = payload.songData;
-        this.receivedAt = Date.now();
-        this.updateDom();
-        this.toggleVisibility();
+        this.showSongData(payload.songData);
+    }
+  },
+
+  // Changement de morceau : l'ancien sort (pochette qui pivote, textes qui s'effacent), puis le nouveau entre
+  showSongData(songData) {
+    const key = songData.noSong || songData.authRequired ? '' : songData.songTitle + '|' + songData.artist;
+    const changed = key !== this.trackKey;
+    this.trackKey = key;
+
+    const render = () => {
+      this.context = songData;
+      this.receivedAt = Date.now();
+      this.entering = changed && key !== '';
+      this.updateDom();
+      this.toggleVisibility();
+    };
+
+    const current = document.querySelector('#' + this.identifier + ' .NPOS_halo');
+    if (changed && current && !this.leaving) {
+      this.leaving = true;
+      current.classList.add('NPOS_leave');
+      setTimeout(() => {
+        this.leaving = false;
+        render();
+      }, 450);
+    } else if (!this.leaving) {
+      render();
     }
   },
 

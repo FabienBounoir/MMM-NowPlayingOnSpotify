@@ -165,3 +165,63 @@
   text-align: left;
   line-height: 1.4;
 }
+
+/* Changement de morceau : sortie de l'ancien (0,45 s), entrée du nouveau */
+@media (prefers-reduced-motion: no-preference) {
+  .NPOS_leave .NPOS_cover {
+    animation: NPOS_coverOut 0.45s ease-in both;
+  }
+
+  .NPOS_leave .NPOS_text > * {
+    animation: NPOS_fadeOut 0.4s ease-in both;
+  }
+
+  .NPOS_leave .NPOS_glow {
+    animation: NPOS_glowOut 0.4s ease-in both;
+  }
+
+  .NPOS_enter .NPOS_cover {
+    animation: NPOS_coverIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .NPOS_enter .NPOS_glow {
+    animation: NPOS_glowIn 1.6s ease-out both;
+  }
+
+  .NPOS_enter .NPOS_text > * {
+    animation: NPOS_textIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /* Les lignes arrivent l'une après l'autre */
+  .NPOS_enter .NPOS_text > :nth-child(1) { animation-delay: 0.15s; }
+  .NPOS_enter .NPOS_text > :nth-child(2) { animation-delay: 0.25s; }
+  .NPOS_enter .NPOS_text > :nth-child(3) { animation-delay: 0.35s; }
+  .NPOS_enter .NPOS_text > :nth-child(4) { animation-delay: 0.4s; }
+  .NPOS_enter .NPOS_text > :nth-child(5) { animation-delay: 0.5s; }
+}
+
+@keyframes NPOS_coverOut {
+  to { opacity: 0; transform: perspective(600px) rotateY(90deg) scale(0.9); }
+}
+
+@keyframes NPOS_coverIn {
+  from { opacity: 0; transform: perspective(600px) rotateY(-90deg) scale(0.9); }
+}
+
+@keyframes NPOS_fadeOut {
+  to { opacity: 0; transform: translateY(-6px); }
+}
+
+@keyframes NPOS_textIn {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+}
+
+@keyframes NPOS_glowOut {
+  to { opacity: 0; }
+}
+
+/* Le halo s'allume avec la nouvelle couleur, avec un léger éclat */
+@keyframes NPOS_glowIn {
+  from { opacity: 0; }
+  40% { opacity: calc(0.8 * var(--c)); }
+}
