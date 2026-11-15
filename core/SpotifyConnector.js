@@ -9,9 +9,35 @@ const apiEndpoint = 'https://api.spotify.com/v1/me/player';
 
 module.exports = class SpotifyConnector {
 
-  constructor(credentials) {
+  // onTokens(credentials) est appelé à chaque nouveau token, pour les garder sur disque
+  constructor(credentials, onTokens = () => {}) {
     this.credentials = credentials;
+    this.onTokens = onTokens;
     this.tokenExpiresAt = moment();
+    this.needsAuth = false; // true quand Spotify a révoqué le refresh token : il faut se reconnecter
+  }
+
+  saveTokens(response) {
+    this.credentials.accessToken = response.access_token;
+    // Spotify peut renvoyer un nouveau refresh token : l'ancien finit alors par être révoqué
+    if (response.refresh_token) this.credentials.refreshToken = response.refresh_token;
+    this.tokenExpiresAt = moment().add(response.expires_in, 'seconds');
+    this.needsAuth = false;
+    this.onTokens(this.credentials);
+  }
+
+  // Échange le code reçu après la connexion sur le téléphone contre des tokens
+  authorize(code, redirectUri) {
+    return request.post({
+      url: tokenRefreshEndpoint,
+      headers: { 'Authorization': this.basicAuth() },
+      form: { grant_type: 'authorization_code', code: code, redirect_uri: redirectUri },
+      json: true
+    }).then((response) => this.saveTokens(response));
+  }
+
+  basicAuth() {
+    return 'Basic ' + Buffer.from(this.credentials.clientID + ':' + this.credentials.clientSecret).toString('base64');
   }
 
   retrieveCurrentlyPlaying() {
@@ -24,12 +50,14 @@ module.exports = class SpotifyConnector {
           console.log('Refreshed access token because it has expired. Expired at: %s now is: %s',
             this.tokenExpiresAt.format('HH:mm:ss'), moment().format('HH:mm:ss'));
 
-          this.credentials.accessToken = response.access_token;
-          this.tokenExpiresAt = moment().add(response.expires_in, 'seconds');
-
+          this.saveTokens(response);
           return this.getSpotifyData();
         })
         .catch((err) => {
+          if (err.error && err.error.error === 'invalid_grant') {
+            this.needsAuth = true;
+            throw err;
+          }
           console.error('Error while refreshing:');
           console.error(err);
         });
@@ -47,11 +75,9 @@ module.exports = class SpotifyConnector {
   }
 
   refreshAccessToken() {
-    let client_id = this.credentials.clientID;
-    let client_secret = this.credentials.clientSecret;
     let options = {
       url: tokenRefreshEndpoint,
-      headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+      headers: { 'Authorization': this.basicAuth() },
       form: {
         grant_type: 'refresh_token',
         refresh_token: this.credentials.refreshToken

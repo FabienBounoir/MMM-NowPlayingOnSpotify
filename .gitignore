@@ -97,3 +97,6 @@ package-lock.json
 .AppleDouble/
 
 credentials.json
+
+# Tokens Spotify obtenus par QR code
+tokens.json

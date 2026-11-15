@@ -110,6 +110,18 @@ Here is an example for an entry in `config.js`
 
 Ajoutez simplement un bloc par compte, avec le même nom de module : chaque instance utilise ses propres identifiants. Inutile de dupliquer le dossier du module.
 
+### Reconnexion par QR code
+
+Si Spotify révoque un compte (`invalid_grant`), le bloc affiche un QR code. Scannez-le avec un téléphone connecté au même Wi-Fi que le miroir, connectez-vous à Spotify : les nouveaux tokens sont enregistrés dans `tokens.json` et l'affichage reprend, sans toucher à `config.js`.
+
+Une seule fois, dans le [dashboard Spotify](https://developer.spotify.com/dashboard) de chaque app, ajoutez cette **Redirect URI** :
+
+```
+https://fabienbounoir.github.io/MMM-NowPlayingOnSpotify/callback.html
+```
+
+(Spotify n'accepte que des redirections HTTPS : cette page renvoie simplement le téléphone vers le miroir.) L'option `accountName` affiche le nom du compte à côté du QR code.
+
 
 ## Special Thanks
 

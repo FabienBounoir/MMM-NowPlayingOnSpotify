@@ -7,7 +7,9 @@ class NPOS_DomBuilder {
   }
 
   getDom(context) {
-    if (context.noSong) {
+    if (context.authRequired) {
+      return this.getWrapper(this.getAuthRequiredContent(context));
+    } else if (context.noSong) {
       return this.getWrapper(this.getNothingIsPlayingContent());
     } else {
       return this.getWrapper(this.getPlayingContent(context));
@@ -50,6 +52,25 @@ class NPOS_DomBuilder {
     if (this.config.showLogoWhenNothingIsPlaying) {
       content.appendChild(this.getLogoImage());
     }
+
+    return content;
+  }
+
+  // Compte révoqué : QR code à scanner avec le téléphone pour se reconnecter
+  getAuthRequiredContent(context) {
+    let content = document.createElement('div');
+    content.className = 'NPOS_authRequired';
+
+    let qrCode = document.createElement('div');
+    qrCode.className = 'NPOS_qrCode';
+    qrCode.innerHTML = context.qrCode; // SVG généré par node_helper.js
+    content.appendChild(qrCode);
+
+    let text = document.createElement('div');
+    text.className = 'NPOS_authText small';
+    let who = this.config.accountName ? ' de ' + this.config.accountName : '';
+    text.innerHTML = '<i class="fa fa-spotify"></i> Spotify' + who + ' déconnecté<br><span class="dimmed xsmall">Scanne pour te reconnecter</span>';
+    content.appendChild(text);
 
     return content;
   }

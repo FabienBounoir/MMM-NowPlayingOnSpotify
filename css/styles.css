@@ -80,3 +80,22 @@ progress[value].NPOS_progress::-webkit-progress-value {
   background-color: #F5F5F5 !important; 
   border-radius: 1em !important;
 }
+
+/* Compte déconnecté : QR code de reconnexion */
+.NPOS_authRequired {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.NPOS_qrCode svg {
+  display: block;
+  width: 130px;
+  height: 130px;
+  border-radius: 10px; /* le SVG a un fond blanc : lisible par tous les téléphones sur le miroir noir */
+}
+
+.NPOS_authText {
+  text-align: left;
+  line-height: 1.4;
+}

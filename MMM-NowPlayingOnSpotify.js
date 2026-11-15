@@ -12,6 +12,7 @@ Module.register('MMM-NowPlayingOnSpotify', {
     updatesEvery: 1,                  // How often should the table be updated in s?
     showCoverArt: true,               // Do you want the cover art to be displayed?
     showLogoWhenNothingIsPlaying: true, // Do you want the Spotify logo to be shown when nothing is playing?
+    accountName: '',                  // Shown next to the reconnect QR code, e.g. 'Fabien'
     marginTop: 0,                     // Top margin in pixels
     marginLeft: 0,                    // Left margin in pixels
     marginRight: 0,                   // Right margin in pixels
