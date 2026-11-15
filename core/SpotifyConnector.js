@@ -4,7 +4,8 @@ const request = require('request-promise-native');
 const moment = require('moment');
 
 const tokenRefreshEndpoint = 'https://accounts.spotify.com/api/token';
-const apiEndpoint = 'https://api.spotify.com/v1/me/player';
+// additional_types=episode : sans ça, Spotify renvoie un morceau vide pendant un podcast
+const apiEndpoint = 'https://api.spotify.com/v1/me/player?additional_types=episode';
 
 
 module.exports = class SpotifyConnector {

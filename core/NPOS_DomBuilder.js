@@ -69,7 +69,7 @@ class NPOS_DomBuilder {
     let text = document.createElement('div');
     text.className = 'NPOS_authText small';
     let who = this.config.accountName ? ' de ' + this.config.accountName : '';
-    text.innerHTML = '<i class="fa fa-spotify"></i> Spotify' + who + ' déconnecté<br><span class="dimmed xsmall">Scanne pour te reconnecter</span>';
+    text.innerHTML = '<i class="fa-brands fa-spotify"></i> Spotify' + who + ' déconnecté<br><span class="dimmed xsmall">Scanne pour te reconnecter</span>';
     content.appendChild(text);
 
     return content;
@@ -111,7 +111,7 @@ class NPOS_DomBuilder {
   getPlayingContent(context) {
     let content = document.createElement('div');
 
-    if (this.config.showCoverArt) {
+    if (this.config.showCoverArt && context.imgURL) {
       content.appendChild(this.getCoverArtDiv(context.imgURL, 'NPOS_logoImage_cover'));
     } else {
       content.appendChild(this.getIconImage('NPOS_logoImage'));
@@ -127,12 +127,21 @@ class NPOS_DomBuilder {
     return content;
   }
 
+  // La barre avance toute seule en CSS jusqu'à la fin du morceau, entre deux appels à Spotify
   getProgressBar(context) {
-    let progressBar = document.createElement('progress');
+    let progressBar = document.createElement('div');
     progressBar.className = 'NPOS_progress';
-    progressBar.value = context.progress;
-    progressBar.max = context.titleLength;
 
+    let value = document.createElement('div');
+    value.className = 'NPOS_progressValue';
+    let start = context.titleLength ? Math.min(1, context.progress / context.titleLength) : 0;
+    value.style.transform = 'scaleX(' + start + ')';
+    if (context.isPlaying && context.titleLength) {
+      value.style.setProperty('--NPOS-start', start);
+      value.style.animation = 'NPOS_progress ' + (context.titleLength - context.progress) + 'ms linear forwards';
+    }
+
+    progressBar.appendChild(value);
     return progressBar;
   }
 

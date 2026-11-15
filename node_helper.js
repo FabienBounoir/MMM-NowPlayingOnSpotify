@@ -7,6 +7,7 @@ const path = require('path');
 const crypto = require('crypto');
 const QRCode = require('qrcode');
 const SpotifyConnector = require('./core/SpotifyConnector');
+const toSongData = require('./core/songData');
 
 // Tokens obtenus en se reconnectant depuis le téléphone, par clientID. Ils priment sur ceux de config.js.
 const TOKENS_FILE = path.join(__dirname, 'tokens.json');
@@ -92,16 +93,21 @@ module.exports = NodeHelper.create({
   retrieveCurrentSong: function (id) {
     const connector = this.connectors[id];
     // Compte révoqué : on attend la reconnexion par QR code au lieu de harceler Spotify
-    if (!connector || connector.needsAuth) return;
+    // Une requête à la fois par compte : si Spotify répond lentement, on ne relance pas un 2e renouvellement de token
+    if (!connector || connector.needsAuth || connector.busy) return;
+    connector.busy = true;
 
     connector.retrieveCurrentlyPlaying()
       .then((response) => {
-        this.sendRetrievedNotification(id, response || { noSong: true });
+        this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData: toSongData(response) });
       })
       .catch((error) => {
         if (connector.needsAuth) return this.sendAuthRequired(id);
         console.error('Can’t retrieve current song. Reason: ');
         console.error(error);
+      })
+      .finally(() => {
+        connector.busy = false;
       });
   },
 
@@ -124,42 +130,6 @@ module.exports = NodeHelper.create({
     fs.writeFile(TOKENS_FILE, JSON.stringify(this.tokens, null, 2), { mode: 0o600 }, (error) => {
       if (error) console.error('[MMM-NowPlayingOnSpotify] tokens non enregistrés : ' + error.message);
     });
-  },
-
-
-  sendRetrievedNotification: function (id, songInfo) {
-    let payload = songInfo;
-
-    if (!songInfo.noSong) {
-      payload = {
-        imgURL: this.getImgURL(songInfo.item.album.images),
-        songTitle: songInfo.item.name,
-        artist: this.getArtistName(songInfo.item.artists),
-        album: songInfo.item.album.name,
-        titleLength: songInfo.item.duration_ms,
-        progress: songInfo.progress_ms,
-        isPlaying: songInfo.isPlaying,
-        deviceName: songInfo.device.name
-      };
-    }
-
-    this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData: payload });
-  },
-
-
-  getArtistName: function (artists) {
-    return artists.map((artist) => {
-      return artist.name;
-    }).join(', ');
-  },
-
-
-  getImgURL(images) {
-    let filtered = images.filter((image) => {
-      return image.width >= 240 && image.width <= 350;
-    });
-
-    return filtered[0].url;
   }
 });
 
