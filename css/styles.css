@@ -33,16 +33,20 @@
 }
 
 .NPOS_logoImage_cover {
-  height: 100px;
-  position: absolute;
+  height: 150px !important; 
+  position: absolute !important;
   right: 0;
-  width: 100px;
+  width: 150px !important; 
+}
+
+.NPOS_logoImage_cover img{
+    border-radius: 15px;
 }
 
 .NPOS_logoImage {
   height: 100px;
   opacity: 0.2;
-  position: absolute;
+  position: absolute !important;
   right: 0;
   width: 100px;
 }
@@ -53,16 +57,17 @@
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: white !important;
 }
 
 .NPOS_icon {
-  margin-right: 1em;
+  margin-right: 0.5em !important;
 }
 
 progress.NPOS_progress {
   background-color: transparent;
   border-radius: 1em;
-  border: 1px solid #aaaaaa;
+  border: 1px solid #F5F5F5 !important;
   height: 0.5em;
   width: 100%;
 }
@@ -72,5 +77,6 @@ progress[value].NPOS_progress::-webkit-progress-bar {
 }
 
 progress[value].NPOS_progress::-webkit-progress-value {
-  background-color: #aaaaaa;
+  background-color: #F5F5F5 !important; 
+  border-radius: 1em !important;
 }

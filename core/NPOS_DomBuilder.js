@@ -20,7 +20,7 @@ class NPOS_DomBuilder {
 
   getWrapper(content) {
     let wrapper = document.createElement('div');
-    wrapper.className = 'small';
+    wrapper.className = 'medium'; //small
     wrapper.style.marginTop = this.config.marginTop + 'px';
     wrapper.style.marginLeft = this.config.marginLeft + 'px';
     wrapper.style.marginRight = this.config.marginRight + 'px';
