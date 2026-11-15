@@ -44,21 +44,20 @@
   opacity: calc(0.6 * var(--c));
 }
 
-/* Halo : part de derrière la pochette et s'étire sous le texte en s'estompant vers la droite.
-   Un dégradé plutôt qu'un flou : même rendu, beaucoup moins de travail pour le Pi. */
+/* Halo : la couleur de la pochette, comme un rétroéclairage serré derrière elle.
+   Plus intense et plus compact qu'un grand voile : derrière un miroir sans tain, un voile pâle passe pour une tache. */
 .NPOS_glow {
-  /* L'ellipse touche exactement les bords haut, bas et droit de sa boîte : la couleur s'éteint avant, sans coupure nette,
-     et reste dans la hauteur du bloc pour ne pas se mélanger avec un autre module posé juste au-dessus ou en dessous */
-  background: radial-gradient(ellipse 85% 50% at 15% 50%, var(--NPOS-color), transparent);
-  height: 210px;
-  left: -60px;
+  background: var(--NPOS-color);
+  border-radius: 30%;
+  filter: blur(45px);
+  height: 190px;
+  left: -25px;
   opacity: calc(0.75 * var(--c));
   pointer-events: none;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  transition: opacity 2s;
-  width: 75%;
+  width: 210px;
 }
 
 .NPOS_cover {
