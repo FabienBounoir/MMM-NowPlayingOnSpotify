@@ -13,7 +13,7 @@ Module.register('MMM-NowPlayingOnSpotify', {
     idleUpdatesEvery: 30,             // Same, while nothing is playing or the music is paused
     showCoverArt: true,               // Do you want the cover art to be displayed?
     showLogoWhenNothingIsPlaying: true, // Do you want the Spotify logo to be shown when nothing is playing?
-    hideWhenNothingIsPlaying: false,  // Fade the whole module out while nothing is playing
+    hideWhenNothingIsPlaying: false,  // Fade the whole module out while nothing is playing (paused included)
     showNextTrack: false,             // Show the next track of the queue under the progress bar
     contrast: 1,                      // Brightness of secondary texts and halo: 1.5 = brighter, 0.7 = softer
     accountName: '',                  // Shown next to the reconnect QR code, e.g. 'Fabien'
@@ -119,11 +119,11 @@ Module.register('MMM-NowPlayingOnSpotify', {
     return Math.max(500, Math.min(this.config.updatesEvery * 1000, remaining + 800));
   },
 
-  // hideWhenNothingIsPlaying : fondu de sortie quand rien ne joue (le QR code de reconnexion reste toujours visible)
+  // hideWhenNothingIsPlaying : fondu de sortie quand rien ne joue ou en pause (le QR code de reconnexion reste toujours visible)
   toggleVisibility() {
     if (!this.config.hideWhenNothingIsPlaying) return;
     const lock = { lockString: this.identifier };
-    if (this.context.noSong) {
+    if (!this.context.authRequired && !this.context.isPlaying) {
       if (!this.hidden) this.hide(1000, lock);
     } else if (this.hidden) {
       this.show(1000, lock);
