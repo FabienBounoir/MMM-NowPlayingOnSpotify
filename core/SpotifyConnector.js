@@ -49,6 +49,11 @@ module.exports = class SpotifyConnector {
       });
   }
 
+  // Profil du compte : sert à afficher son nom (display_name) sans le mettre dans la config
+  getProfile() {
+    return this.getSpotifyData('https://api.spotify.com/v1/me');
+  }
+
   // File d'attente : sert à afficher « À suivre »
   getQueue() {
     return this.getSpotifyData(queueEndpoint);

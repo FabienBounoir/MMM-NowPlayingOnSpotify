@@ -79,7 +79,7 @@ There is not very much to configure but here are the options:
 | `idleUpdatesEvery` | <p>Refresh interval in seconds while nothing is playing or the music is paused. While music plays, `updatesEvery` is used so track changes show up right away.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `60`<br>**Default Value:** `30`</p> |
 | `showNextTrack` | <p>Shows the next track of the queue (« À suivre ») under the progress bar. The queue is only requested when the track changes.</p><p>**Type:** `boolean` **OPTIONAL**<br>**Example:** `true`<br>**Default Value:** `false`</p> |
 | `contrast` | <p>One setting for the brightness of the secondary texts (artist, device, time, next track), the progress bar track and the halo. Raise it if the mirror glass makes things look dim.</p><p>**Type:** `number` **OPTIONAL**<br>**Example:** `1.4`<br>**Default Value:** `1`</p> |
-| `accountName` | <p>Name shown next to the reconnect QR code when Spotify disconnects the account.</p><p>**Type:** `string` **OPTIONAL**<br>**Example:** `"Fabien"`<br>**Default Value:** `""`</p> |
+| `accountName` | <p>Name of the account, shown next to the reconnect QR code and sent with the notifications. Optional: by default the name of the Spotify profile is used.</p><p>**Type:** `string` **OPTIONAL**<br>**Example:** `"Fabien"`<br>**Default Value:** `""`</p> |
 | `marginLeft` | <p>An integer value for the left margin in pixels.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `10`<br>**Default Value:** `0`</p> |
 | `marginRight` | <p>An integer value for the right margin in pixels.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `10`<br>**Default Value:** `0`</p> |
 | `marginBottom` | <p>An integer value for the bottom margin in pixels.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `10`<br>**Default Value:** `0`</p> || `updatesEvery` | <p>An integer determining the interval for display updates.</p><p>**Type:** `integer` **OPTIONAL**<br>**Example:** `5`<br>**Default Value:** `1`</p><p>**Note:** With the default setting the display is updated every second. So when you skip to the next song it is virtually immediately visible. Also the progress bar runs smoothly. If you increase the value you may relieve the strain on your Raspberry’s processor but your display will not be as up-to-date. </p> |
@@ -106,6 +106,24 @@ Here is an example for an entry in `config.js`
 }
 ```
 
+
+### Notifications pour les autres modules
+
+Le module prévient les autres modules quand l'état change (lecture lancée, morceau suivant, pause ou arrêt), pas à chaque rafraîchissement :
+
+| Notification | Contenu |
+| --- | --- |
+| `SPOTIFY_PLAYING` | `{ account, title, artist, album, device, imgURL }` |
+| `SPOTIFY_STOPPED` | `{ account }` |
+
+`account` est le nom du compte (`accountName`, ou à défaut le nom du profil Spotify). Exemple dans un autre module :
+
+```js
+notificationReceived(notification, payload) {
+  if (notification === "SPOTIFY_PLAYING") this.hide(1000);
+  if (notification === "SPOTIFY_STOPPED") this.show(1000);
+}
+```
 
 ### Plusieurs comptes Spotify
 

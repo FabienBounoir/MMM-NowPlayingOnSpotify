@@ -89,6 +89,7 @@ Module.register('MMM-NowPlayingOnSpotify', {
     const key = songData.noSong || songData.authRequired ? '' : songData.songTitle + '|' + songData.artist;
     const changed = key !== this.trackKey;
     this.trackKey = key;
+    this.notifyOtherModules(songData, key);
 
     const render = () => {
       this.context = songData;
@@ -109,6 +110,29 @@ Module.register('MMM-NowPlayingOnSpotify', {
       }, 450);
     } else if (!this.leaving) {
       render();
+    }
+  },
+
+  // Prévient les autres modules (SPOTIFY_PLAYING / SPOTIFY_STOPPED), seulement quand l'état change.
+  // Exemple dans un autre module : notificationReceived(n, payload) { if (n === 'SPOTIFY_PLAYING') ... }
+  notifyOtherModules(songData, key) {
+    const playing = key !== '' && songData.isPlaying;
+    const state = playing ? key : 'stopped';
+    if (state === this.notifiedState) return;
+    this.notifiedState = state;
+
+    const account = this.config.accountName || songData.accountName || '';
+    if (playing) {
+      this.sendNotification('SPOTIFY_PLAYING', {
+        account,
+        title: songData.songTitle,
+        artist: songData.artist,
+        album: songData.album,
+        device: songData.deviceName,
+        imgURL: songData.imgURL
+      });
+    } else {
+      this.sendNotification('SPOTIFY_STOPPED', { account });
     }
   },
 

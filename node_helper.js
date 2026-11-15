@@ -60,6 +60,9 @@ module.exports = NodeHelper.create({
         return res.status(400).send(page('Connexion annulée ou lien expiré (' + reason + '). Rescanne le QR code affiché sur le miroir.'));
       }
       delete this.pendingLogins[nonce];
+      // On a pu se connecter avec un autre compte : le nom sera relu sur le profil
+      delete connector.credentials.displayName;
+      connector.profileRequested = false;
 
       connector.authorize(req.query.code, RELAY_URI)
         .then(() => {
@@ -103,7 +106,7 @@ module.exports = NodeHelper.create({
     connector.retrieveCurrentlyPlaying()
       .then((response) => {
         const songData = toSongData(response);
-        return this.addNextTrack(connector, response, songData)
+        return Promise.all([this.addNextTrack(connector, response, songData), this.addAccountName(connector, songData)])
           .then(() => this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData }));
       })
       .catch((error) => {
@@ -141,12 +144,34 @@ module.exports = NodeHelper.create({
   },
 
 
+  // Nom du compte lu une seule fois sur le profil Spotify, puis gardé dans tokens.json
+  addAccountName: function (connector, songData) {
+    const credentials = connector.credentials;
+    if (credentials.displayName || connector.profileRequested) {
+      songData.accountName = credentials.displayName;
+      return Promise.resolve();
+    }
+
+    connector.profileRequested = true;
+    return connector.getProfile()
+      .then((profile) => {
+        credentials.displayName = (profile && profile.display_name) || '';
+        songData.accountName = credentials.displayName;
+        this.saveTokens(credentials);
+      })
+      .catch((error) => {
+        console.warn('[MMM-NowPlayingOnSpotify] nom du compte indisponible : ' + error.message);
+      });
+  },
+
+
   sendAuthRequired: function (id) {
     const url = 'http://' + lanAddress() + ':' + ((global.config && global.config.port) || 8080) + ROUTE + '/login/' + id;
     console.warn('[MMM-NowPlayingOnSpotify] compte Spotify déconnecté, reconnexion : ' + url);
 
     QRCode.toString(url, { type: 'svg', margin: 2 }).then((qrCode) => {
-      this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData: { authRequired: true, qrCode, url } });
+      const accountName = this.connectors[id] && this.connectors[id].credentials.displayName;
+      this.sendSocketNotification('RETRIEVED_SONG_DATA', { id, songData: { authRequired: true, qrCode, url, accountName } });
     });
   },
 
@@ -154,7 +179,8 @@ module.exports = NodeHelper.create({
   saveTokens: function (credentials) {
     this.tokens[credentials.clientID] = {
       accessToken: credentials.accessToken,
-      refreshToken: credentials.refreshToken
+      refreshToken: credentials.refreshToken,
+      displayName: credentials.displayName
     };
     fs.writeFile(TOKENS_FILE, JSON.stringify(this.tokens, null, 2), { mode: 0o600 }, (error) => {
       if (error) console.error('[MMM-NowPlayingOnSpotify] tokens non enregistrés : ' + error.message);

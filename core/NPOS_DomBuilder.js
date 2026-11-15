@@ -68,7 +68,8 @@ class NPOS_DomBuilder {
 
     let text = document.createElement('div');
     text.className = 'NPOS_authText small';
-    let who = this.config.accountName ? ' de ' + this.config.accountName : '';
+    let name = this.config.accountName || context.accountName; // la config prime sur le nom du profil Spotify
+    let who = name ? ' de ' + name : '';
     text.innerHTML = '<i class="fa-brands fa-spotify"></i> Spotify' + who + ' déconnecté<br><span class="dimmed xsmall">Scanne pour te reconnecter</span>';
     content.appendChild(text);
 
